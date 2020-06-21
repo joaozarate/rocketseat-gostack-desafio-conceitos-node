@@ -8,6 +8,35 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
+
+function logRequests(request, response, next) {
+  const { method, url } = request;
+  const loglabel = `[${method.toUpperCase()}] ${url}`;
+  console.time(loglabel);
+  next();
+  console.timeEnd(loglabel);
+}
+
+app.use(logRequests);
+
+function validateProjectId(request, response, next) {
+  const { id } = request.params;
+
+  if (!isUuid(id)) {
+    return response.status(400).json(
+      {
+        message: 'Invalid project ID.',
+        error: 'The server cannot or will not process the request due to an apparent client error.'
+      }
+    );
+  }
+
+  return next();
+}
+
+app.use('/projects/:id/*', validateProjectId);
+
+
 const repositories = [];
 
 app.get("/repositories", (request, response) => {
@@ -15,7 +44,9 @@ app.get("/repositories", (request, response) => {
 });
 
 app.post("/repositories", (request, response) => {
-  // TODO
+
+
+
 });
 
 app.put("/repositories/:id", (request, response) => {
